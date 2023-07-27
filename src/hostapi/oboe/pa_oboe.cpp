@@ -327,7 +327,7 @@ bool OboeEngine::tryStream(Direction direction, int32_t sampleRate, int32_t chan
     builder.setDeviceId(getSelectedDevice(direction))
             // Arbitrary format usually broadly supported. Later, we'll open streams with correct formats.
             // FIXME: if needed, modify this format to whatever you require
-            ->setFormat(AudioFormat::Float)
+            ->setFormat(AudioFormat::I16)
             ->setDirection(direction)
             ->setSampleRate(sampleRate)
             ->setChannelCount(channelCount)
@@ -1397,14 +1397,14 @@ static PaError OpenStream(struct PaUtilHostApiRepresentation *hostApi,
                 androidInputPreset != InputPreset::VoicePerformance)
                 return paIncompatibleHostApiSpecificStreamInfo;
         }
-        /* FIXME: Replace "paFloat32" with whatever format you prefer -
+        /* FIXME: Replace "paInt16" with whatever format you prefer -
          *  PaUtil_SelectClosestAvailableFormat is a bit faulty when working with multiple options */
         hostInputSampleFormat = PaUtil_SelectClosestAvailableFormat(
-                paFloat32, inputSampleFormat);
+                paInt16, inputSampleFormat);
         paOboeStream->inputFormat = hostInputSampleFormat;
     } else {
         inputChannelCount = 0;
-        inputSampleFormat = hostInputSampleFormat = paFloat32; /* Suppress 'uninitialised var' warnings. */
+        inputSampleFormat = hostInputSampleFormat = paInt16; /* Suppress 'uninitialised var' warnings. */
         paOboeStream->inputFormat = hostInputSampleFormat;
     }
 
@@ -1437,15 +1437,15 @@ static PaError OpenStream(struct PaUtilHostApiRepresentation *hostApi,
                 androidOutputUsage != Usage::Game)
                 return paIncompatibleHostApiSpecificStreamInfo;
         }
-        /* FIXME: Replace "paFloat32" with whatever format you prefer -
+        /* FIXME: Replace "paInt16" with whatever format you prefer -
                   PaUtil_SelectClosestAvailableFormat is a bit faulty when working with multiple options
          */
         hostOutputSampleFormat = PaUtil_SelectClosestAvailableFormat(
-                paFloat32, outputSampleFormat);
+                paInt16, outputSampleFormat);
         paOboeStream->outputFormat = hostOutputSampleFormat;
     } else {
         outputChannelCount = 0;
-        outputSampleFormat = hostOutputSampleFormat = paFloat32;
+        outputSampleFormat = hostOutputSampleFormat = paInt16;
         paOboeStream->outputFormat = hostOutputSampleFormat;
     }
 
