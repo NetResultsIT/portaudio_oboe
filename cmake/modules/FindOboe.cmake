@@ -1,5 +1,5 @@
 #[=======================================================================[.rst:
-Findoboe
+FindOboe
 --------
 
 Finds the oboe library. OBOE_DIRECTORY has to be set to the path of the directory where
