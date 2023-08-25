@@ -82,8 +82,6 @@
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,MODULE_NAME, __VA_ARGS__)
 #define LOGF(...) __android_log_print(ANDROID_LOG_FATAL,MODULE_NAME, __VA_ARGS__)
 
-//TODO: PaOboe_Patch: PaUtil_AllocateZeroInitializedMemory replaces PaUtil_AllocateMemory (same with GoupAllocations)
-
 // Copied from @{pa_opensles.c}.
 #define ENSURE(expr, errorText)                                             \
     do                                                                      \
@@ -1890,11 +1888,11 @@ void PaOboe_SetSelectedDevice(Direction direction, int32_t deviceID) {
 }
 
 
-void PaOboe_SetNativeBufferSize(unsigned long bufferSize) {
+void PaOpenSLES_SetNativeBufferSize(unsigned long bufferSize) {
     nativeBufferSize = bufferSize;
 }
 
 
-void PaOboe_SetNumberOfBuffers(unsigned buffers) {
+void PaOpenSLES_SetNumberOfBuffers(unsigned buffers) {
     numberOfBuffers = buffers;
 }
