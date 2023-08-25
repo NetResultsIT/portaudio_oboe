@@ -1869,10 +1869,10 @@ void PaOboe_SetPerformanceMode(oboe::Direction direction, oboe::PerformanceMode 
     }
 }
 
-void PaOboe_SetNativeBufferSize(unsigned long bufferSize) {
+void PaOpenSLES_SetNativeBufferSize(unsigned long bufferSize) {
     paOboe_nativeBufferSize = bufferSize;
 }
 
-void PaOboe_SetNumberOfBuffers(unsigned numberOfBuffers) {
+void PaOpenSLES_SetNumberOfBuffers(unsigned buffers) {
     paOboe_numberOfBuffers = numberOfBuffers;
 }
