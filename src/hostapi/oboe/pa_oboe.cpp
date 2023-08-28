@@ -1873,6 +1873,6 @@ void PaOpenSLES_SetNativeBufferSize(unsigned long bufferSize) {
     paOboe_nativeBufferSize = bufferSize;
 }
 
-void PaOpenSLES_SetNumberOfBuffers(unsigned buffers) {
+void PaOpenSLES_SetNumberOfBuffers(unsigned numberOfBuffers) {
     paOboe_numberOfBuffers = numberOfBuffers;
 }
