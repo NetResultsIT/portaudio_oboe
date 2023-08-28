@@ -71,9 +71,17 @@ typedef struct PaOboeStreamInfo {
  * Provide PA Oboe with the ID of the device the user chose - oboe cannot build a device list,
  * but can select the device if provided with its ID.
  * @param direction - the direction of the stream for which we want to set the device.
- * @param deviceID - the ID of the device chose by the user.
+ * @param deviceID - the ID of the device chosen by the user.
  */
 void PaOboe_SetSelectedDevice(oboe::Direction direction, int32_t deviceID);
+
+
+/**
+ * Provide PA Oboe with the performance mode chosen by the user.
+ * @param  direction - the direction of the stream for which we want to set the performance mode.
+ * @param  performanceMode - the performance mode chosen by the user.
+ */
+void PaOboe_SetPerformanceMode(oboe::Direction direction, oboe::PerformanceMode performanceMode);
 
 
 /**
@@ -85,7 +93,7 @@ void PaOboe_SetSelectedDevice(oboe::Direction direction, int32_t deviceID);
  * as well, and use the sample rate defined in AudioManager's android.media.property.OUTPUT_SAMPLE_RATE.
  * All three together will enable the AUDIO_OUTPUT_FLAG_FAST flag.
  */
-void PaOpenSLES_SetNativeBufferSize(unsigned long bufferSize);
+void PaOboe_SetNativeBufferSize(unsigned long bufferSize);
 
 /**
  * Provide PA Oboe with native buffer information. If you call this function, you must do so before
@@ -95,7 +103,7 @@ void PaOpenSLES_SetNativeBufferSize(unsigned long bufferSize);
  * buffer size when doing this, and use the sample rate defined in AudioManager's
  * android.media.property.OUTPUT_SAMPLE_RATE.
  */
-void PaOpenSLES_SetNumberOfBuffers(unsigned buffers);
+void PaOboe_SetNumberOfBuffers(unsigned buffers);
 
 #ifdef __cplusplus
 }
