@@ -159,8 +159,10 @@ static unsigned numberOfBuffers = 2;
 
 using namespace oboe;
 
-int32_t inputDeviceId = kUnspecified;
-int32_t outputDeviceId = kUnspecified;
+int32_t g_inputDeviceId = kUnspecified;
+int32_t g_outputDeviceId = kUnspecified;
+PerformanceMode g_inputPerfMode = PerformanceMode::None;
+PerformanceMode g_outputPerfMode = PerformanceMode::None;
 
 /**
  * Stream structure, useful to store relevant information. It's needed by Portaudio.
@@ -364,13 +366,13 @@ PaError OboeEngine::openStream(Direction direction, int32_t sampleRate,
                 ->setSampleRate(sampleRate)
                 ->setDirection(Direction::Input)
                 ->setDeviceId(getSelectedDevice(Direction::Input))
+                ->setPerformanceMode(g_inputPerfMode)
                 ->setInputPreset(androidInputPreset)
                 ->setFramesPerCallback(oboeStream->framesPerHostCallback);
 
         if (!(oboeStream->isBlocking)) {
             resetCallbackCounters();
-            inputBuilder.setDataCallback(this)
-                    ->setPerformanceMode(PerformanceMode::LowLatency);
+            inputBuilder.setDataCallback(this);
         }
 
         m_result = inputBuilder.openStream(inputStream);
@@ -408,13 +410,13 @@ PaError OboeEngine::openStream(Direction direction, int32_t sampleRate,
                 ->setSampleRate(sampleRate)
                 ->setDirection(Direction::Output)
                 ->setDeviceId(getSelectedDevice(Direction::Output))
+                ->setPerformanceMode(g_outputPerfMode)
                 ->setUsage(androidOutputUsage)
                 ->setFramesPerCallback(oboeStream->framesPerHostCallback);
 
         if (!(oboeStream->isBlocking)) {
             resetCallbackCounters();
-            outputBuilder.setDataCallback(this)
-                    ->setPerformanceMode(PerformanceMode::LowLatency);
+            outputBuilder.setDataCallback(this);
         }
 
         m_result = outputBuilder.openStream(outputStream);
@@ -510,7 +512,6 @@ bool OboeEngine::restartStream(int direction) {
     bool m_outcome = true;
     Result m_result;
 
-    //TODO: Test if KCTI crashes when ErrorDisconnected occurs
     switch (direction) {
         case 1: //output-only
             //stopping and closing
@@ -863,9 +864,9 @@ AudioFormat OboeEngine::PaToOboeFormat(PaSampleFormat paFormat) {
  */
 int32_t OboeEngine::getSelectedDevice(Direction direction) {
     if (direction == Direction::Input)
-        return inputDeviceId;
+        return g_inputDeviceId;
     else
-        return outputDeviceId;
+        return g_outputDeviceId;
 }
 
 
@@ -1411,8 +1412,8 @@ static PaError OpenStream(struct PaUtilHostApiRepresentation *hostApi,
                     )
                 return paIncompatibleHostApiSpecificStreamInfo;
         }
-    /* FIXME: Replace "paInt16" with whatever format you prefer -
-     *  PaUtil_SelectClosestAvailableFormat is a bit faulty when working with multiple options */
+        /* FIXME: Replace "paInt16" with whatever format you prefer -
+         *  PaUtil_SelectClosestAvailableFormat is a bit faulty when working with multiple options */
         m_hostInputSampleFormat = PaUtil_SelectClosestAvailableFormat(
                 paInt16, m_inputSampleFormat);
         m_oboeStream->inputFormat = m_hostInputSampleFormat;
@@ -1451,9 +1452,9 @@ static PaError OpenStream(struct PaUtilHostApiRepresentation *hostApi,
                     )
                 return paIncompatibleHostApiSpecificStreamInfo;
         }
-    /* FIXME: Replace "paInt16" with whatever format you prefer -
-              PaUtil_SelectClosestAvailableFormat is a bit faulty when working with multiple options
-     */
+        /* FIXME: Replace "paInt16" with whatever format you prefer -
+                  PaUtil_SelectClosestAvailableFormat is a bit faulty when working with multiple options
+         */
         m_hostOutputSampleFormat = PaUtil_SelectClosestAvailableFormat(
                 paInt16, m_outputSampleFormat);
         m_oboeStream->outputFormat = m_hostOutputSampleFormat;
@@ -1882,17 +1883,32 @@ static unsigned long GetApproximateLowBufferSize() {
 void PaOboe_SetSelectedDevice(Direction direction, int32_t deviceID) {
     LOGI("[PaOboe - SetSelectedDevice] Selecting device...");
     if (direction == Direction::Input)
-        inputDeviceId = deviceID;
+        g_inputDeviceId = deviceID;
     else
-        outputDeviceId = deviceID;
+        g_outputDeviceId = deviceID;
 }
 
 
-void PaOpenSLES_SetNativeBufferSize(unsigned long bufferSize) {
+void PaOboe_SetPerformanceMode(oboe::Direction direction, oboe::PerformanceMode performanceMode){
+    switch (direction) {
+        case Direction::Input:
+            g_inputPerfMode = performanceMode;
+            break;
+        case Direction::Output:
+            g_outputPerfMode = performanceMode;
+            break;
+        default:
+            g_outputPerfMode = g_inputPerfMode = performanceMode;
+            break;
+    }
+}
+
+
+void PaOboe_SetNativeBufferSize(unsigned long bufferSize) {
     nativeBufferSize = bufferSize;
 }
 
 
-void PaOpenSLES_SetNumberOfBuffers(unsigned buffers) {
+void PaOboe_SetNumberOfBuffers(unsigned buffers) {
     numberOfBuffers = buffers;
 }
