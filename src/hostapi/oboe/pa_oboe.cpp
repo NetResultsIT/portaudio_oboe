@@ -158,10 +158,13 @@ static unsigned numberOfBuffers = 2;
 
 using namespace oboe;
 
+//Useful global variables
 int32_t g_inputDeviceId = kUnspecified;
 int32_t g_outputDeviceId = kUnspecified;
 PerformanceMode g_inputPerfMode = PerformanceMode::None;
+bool g_inputPerfModeUser = false;
 PerformanceMode g_outputPerfMode = PerformanceMode::None;
+bool g_outputPerfModeUser = false;
 
 /**
  * Stream structure, useful to store relevant information. It's needed by Portaudio.
@@ -300,7 +303,7 @@ bool OboeEngine::tryStream(Direction direction, int32_t sampleRate, int32_t chan
     bool m_outcome = false;
 
     m_builder.setDeviceId(getSelectedDevice(direction))
-            // Arbitrary format usually broadly supported. Later, we'll open streams with correct formats.
+                    // Arbitrary format usually broadly supported. Later, we'll open streams with correct formats.
             ->setFormat(AudioFormat::I16)
             ->setDirection(direction)
             ->setSampleRate(sampleRate)
@@ -378,7 +381,7 @@ PaError OboeEngine::openStream(Direction direction, int32_t sampleRate,
         if (!(oboeStream->isBlocking)) {
             resetCallbackCounters();
             inputBuilder.setDataCallback(this)
-                ->setErrorCallback(this);
+                    ->setErrorCallback(this);
         }
 
         m_result = inputBuilder.openStream(inputStream);
@@ -423,7 +426,7 @@ PaError OboeEngine::openStream(Direction direction, int32_t sampleRate,
         if (!(oboeStream->isBlocking)) {
             resetCallbackCounters();
             outputBuilder.setDataCallback(this)
-                ->setErrorCallback(this);
+                    ->setErrorCallback(this);
         }
 
         m_result = outputBuilder.openStream(outputStream);
@@ -877,26 +880,23 @@ int32_t OboeEngine::getSelectedDevice(Direction direction) {
 }
 
 
-
-
+/**
+ * \brief   Function used to automatically select the performance mode, based on the latency value LOW_LATENCY_MS, if no
+ *          choice was made via PaOboe_SetPerformanceMode. It uses OboeEngine::assertLatency to make this decision.
+ * @param   direction the Oboe::Direction of the stream we want to select the mode of.
+ */
 void OboeEngine::performanceModeAutoSelection(Direction direction){
     double m_result = assertLatency(direction);
 
     if(direction == Direction::Input) {
-        if (g_inputPerfMode != PerformanceMode::None) {
-            return;
-        }
-        if (m_result >= 0) {
+        if (m_result >= 0 && !g_inputPerfModeUser) {
             if (m_result <= LOW_LATENCY_MS)
                 g_inputPerfMode = PerformanceMode::LowLatency;
             else
                 g_inputPerfMode = PerformanceMode::PowerSaving;
         }
     } else {
-        if (g_outputPerfMode != PerformanceMode::None) {
-            return;
-        }
-        if (m_result >= 0) {
+        if (m_result >= 0 && !g_outputPerfModeUser) {
             if (m_result <= LOW_LATENCY_MS)
                 g_outputPerfMode = PerformanceMode::LowLatency;
             else
@@ -906,10 +906,13 @@ void OboeEngine::performanceModeAutoSelection(Direction direction){
 }
 
 
-
-
+/**
+ * \brief   Asserts if the device supports latency tutning, then calculates the latency of an AudioStream.
+ * @param   direction the direction of the AudioStream we want to check.
+ * @return  the measured latency, or -1.0 if any error occurs.
+ */
 double OboeEngine::assertLatency(Direction direction){
-    if(__ANDROID_API__<=30) {
+    if(__ANDROID_API__<31) {
         LOGI("[OboeEngine::assertLatency]\t Latency Tuning is not supported for Android API level < 31");
         return -1.0;
     }
@@ -934,7 +937,6 @@ double OboeEngine::assertLatency(Direction direction){
     }
 
 }
-
 
 
 /*----------------------------- PaSkeleton functions implementations -----------------------------*/
@@ -1932,15 +1934,7 @@ static double GetStreamCpuLoad(PaStream *s) {
  * @return  256 for Android API Level <= 23, 192 otherwise.
  */
 static unsigned long GetApproximateLowBufferSize() {
-/* FIXME: This function should return the following commented values, but was changed in order to improve
-         compatibility with KCTI for android. Please use the commented values in normal conditions. */
-
-//    if (__ANDROID_API__ <= 23)
-//        return 256;
-//    else
-//        return 192;
-
-    return 1024;
+    return 1024 //FIXME: Value specifically set to work with KCTI. Use the PaOboe_Patch branch if you want to use Pa_Oboe for any other app.
 }
 
 
@@ -1956,16 +1950,12 @@ void PaOboe_SetSelectedDevice(Direction direction, int32_t deviceID) {
 
 
 void PaOboe_SetPerformanceMode(oboe::Direction direction, oboe::PerformanceMode performanceMode){
-    switch (direction) {
-        case Direction::Input:
-            g_inputPerfMode = performanceMode;
-            break;
-        case Direction::Output:
-            g_outputPerfMode = performanceMode;
-            break;
-        default:
-            g_outputPerfMode = g_inputPerfMode = performanceMode;
-            break;
+    if(direction == Direction::Input) {
+        g_inputPerfMode = performanceMode;
+        g_inputPerfModeUser = true;
+    } else {
+        g_outputPerfMode = performanceMode;
+        g_outputPerfModeUser = true;
     }
 }
 
