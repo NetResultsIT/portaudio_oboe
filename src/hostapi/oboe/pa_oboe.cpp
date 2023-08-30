@@ -1934,7 +1934,7 @@ static double GetStreamCpuLoad(PaStream *s) {
  * @return  256 for Android API Level <= 23, 192 otherwise.
  */
 static unsigned long GetApproximateLowBufferSize() {
-    return 1024 //FIXME: Value specifically set to work with KCTI. Use the PaOboe_Patch branch if you want to use Pa_Oboe for any other app.
+    return 1024; //FIXME: Value specifically set to work with KCTI. Use the PaOboe_Patch branch if you want to use Pa_Oboe for any other app.
 }
 
 
