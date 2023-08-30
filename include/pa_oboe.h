@@ -56,7 +56,8 @@
 extern "C" {
 #endif //__cplusplus
 
-#define TIMEOUT_NS 1000000000
+#define TIMEOUT_NS 1000000000 //Arbitrary timeout of the read/write functions
+#define LOW_LATENCY_MS 300.0 //Arbitrary value used to automatically determine if low latency performance mode is doable
 
 /**
  *  The android stream type and recording preset as defined in Definitions.h

@@ -43,7 +43,6 @@
  * requested that these non-binding requests be included along with the
  * license above.
  */
-#pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 
 /** @file
  @ingroup hostapi_src
@@ -252,6 +251,10 @@ private:
 
     //device selection implementation
     int32_t getSelectedDevice(oboe::Direction direction);
+
+    //auto performance mode selection
+    void performanceModeAutoSelection(Direction direction);
+    double assertLatency(Direction direction);
 };
 
 
@@ -314,6 +317,8 @@ bool OboeEngine::tryStream(Direction direction, int32_t sampleRate, int32_t chan
         return m_outcome;
     }
 
+    performanceModeAutoSelection(direction);
+
     if (sampleRate != kUnspecified) {
         m_outcome = (sampleRate == m_builder.getSampleRate());
         if(!m_outcome) {
@@ -372,7 +377,8 @@ PaError OboeEngine::openStream(Direction direction, int32_t sampleRate,
 
         if (!(oboeStream->isBlocking)) {
             resetCallbackCounters();
-            inputBuilder.setDataCallback(this);
+            inputBuilder.setDataCallback(this)
+                ->setErrorCallback(this);
         }
 
         m_result = inputBuilder.openStream(inputStream);
@@ -416,7 +422,8 @@ PaError OboeEngine::openStream(Direction direction, int32_t sampleRate,
 
         if (!(oboeStream->isBlocking)) {
             resetCallbackCounters();
-            outputBuilder.setDataCallback(this);
+            outputBuilder.setDataCallback(this)
+                ->setErrorCallback(this);
         }
 
         m_result = outputBuilder.openStream(outputStream);
@@ -867,6 +874,65 @@ int32_t OboeEngine::getSelectedDevice(Direction direction) {
         return g_inputDeviceId;
     else
         return g_outputDeviceId;
+}
+
+
+
+
+void OboeEngine::performanceModeAutoSelection(Direction direction){
+    double m_result = assertLatency(direction);
+
+    if(direction == Direction::Input) {
+        if (g_inputPerfMode != PerformanceMode::None) {
+            return;
+        }
+        if (m_result >= 0) {
+            if (m_result <= LOW_LATENCY_MS)
+                g_inputPerfMode = PerformanceMode::LowLatency;
+            else
+                g_inputPerfMode = PerformanceMode::PowerSaving;
+        }
+    } else {
+        if (g_outputPerfMode != PerformanceMode::None) {
+            return;
+        }
+        if (m_result >= 0) {
+            if (m_result <= LOW_LATENCY_MS)
+                g_outputPerfMode = PerformanceMode::LowLatency;
+            else
+                g_outputPerfMode = PerformanceMode::PowerSaving;
+        }
+    }
+}
+
+
+
+
+double OboeEngine::assertLatency(Direction direction){
+    if(__ANDROID_API__<=30) {
+        LOGI("[OboeEngine::assertLatency]\t Latency Tuning is not supported for Android API level < 31");
+        return -1.0;
+    }
+    if(direction == Direction::Input){
+        ResultWithValue<double> m_result = inputStream->calculateLatencyMillis();
+        if (m_result) {
+            return m_result.value();
+        } else {
+            LOGE("[OboeEngine::assertLatency]\t Error calculating input latency: %s",
+                 oboe::convertToText(m_result.error()));
+            return -1.0;
+        }
+    } else {
+        ResultWithValue<double> m_result = outputStream->calculateLatencyMillis();
+        if (m_result) {
+            return m_result.value();
+        } else {
+            LOGE("[OboeEngine::assertLatency]\t Error calculating output latency: %s",
+                 oboe::convertToText(m_result.error()));
+            return -1.0;
+        }
+    }
+
 }
 
 
