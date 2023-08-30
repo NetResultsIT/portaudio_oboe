@@ -2,7 +2,8 @@
 FindOboe
 --------
 
-Finds the Oboe library.
+Finds the Oboe library. OBOE_DIRECTORY has to be set to the path of the directory where
+the Oboe repository was cloned (see src/hostapi/oboe/README.md for more information).
 
 Imported Targets
 ^^^^^^^^^^^^^^^^
