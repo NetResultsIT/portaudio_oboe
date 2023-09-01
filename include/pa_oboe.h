@@ -94,7 +94,7 @@ void PaOboe_SetPerformanceMode(oboe::Direction direction, oboe::PerformanceMode 
  * as well, and use the sample rate defined in AudioManager's android.media.property.OUTPUT_SAMPLE_RATE.
  * All three together will enable the AUDIO_OUTPUT_FLAG_FAST flag.
  */
-void PaOboe_SetNativeBufferSize(unsigned long bufferSize);
+void PaOpenSLES_SetNativeBufferSize(unsigned long bufferSize);
 
 /**
  * Provide PA Oboe with native buffer information. If you call this function, you must do so before
@@ -104,7 +104,7 @@ void PaOboe_SetNativeBufferSize(unsigned long bufferSize);
  * buffer size when doing this, and use the sample rate defined in AudioManager's
  * android.media.property.OUTPUT_SAMPLE_RATE.
  */
-void PaOboe_SetNumberOfBuffers(unsigned buffers);
+void PaOpenSLES_SetNumberOfBuffers(unsigned buffers);
 
 #ifdef __cplusplus
 }
