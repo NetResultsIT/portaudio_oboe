@@ -1,16 +1,16 @@
 #[=======================================================================[.rst:
-FindOboe
+Findoboe
 --------
 
-Finds the Oboe library. OBOE_DIRECTORY has to be set to the path of the directory where
-the Oboe repository was cloned (see src/hostapi/oboe/README.md for more information).
+Finds the oboe library. OBOE_DIRECTORY has to be set to the path of the directory where
+the oboe repository was cloned (see src/hostapi/oboe/README.md for more information).
 
 Imported Targets
 ^^^^^^^^^^^^^^^^
 
 This module provides the following imported target, if found:
 
-``Oboe``
+``oboe::oboe``
   The OBOE library
 
 #]=======================================================================]
@@ -30,16 +30,16 @@ else()
         set(OBOE_INCLUDE_DIR ${OBOE_DIRECTORY}/include)
     endif()
 
-    if(NOT DEFINED OBOE_LINK_LIBRARIES)
+    if(NOT DEFINED OBOE_LIBRARIES)
         set(OBOE_LIBRARY_DIRS ${OBOE_DIRECTORY}/build/${ANDROID_ABI})
-        set(OBOE_LINK_LIBRARIES ${OBOE_LIBRARY_DIRS}/liboboe.so)
+        set(OBOE_LIBRARIES ${OBOE_LIBRARY_DIRS}/liboboe.so)
     endif()
 
     find_package(PkgConfig QUIET)
     if(PkgConfig_FOUND)
         pkg_check_modules(OBOE Oboe)
     else()
-        find_library(OBOE_LINK_LIBRARIES
+        find_library(OBOE_LIBRARIES
                 NAMES liboboe.so
                 HINTS ${OBOE_LIBRARY_DIRS}
                 DOC "Oboe Library"
@@ -51,7 +51,8 @@ else()
     endif()
 
     find_library(LOG_LIBRARY log) #used by pa_oboe.cpp and pa_oboe.h as a logging tool
-    list(APPEND OBOE_LINK_LIBRARIES ${LOG_LIBRARY})
+
+    set(OBOE_LINK_LIBRARIES ${OBOE_LIBRARIES} ${LOG_LIBRARY})
 
 
     include(FindPackageHandleStandardArgs)
@@ -64,10 +65,10 @@ else()
 
     if(OBOE_INCLUDE_DIR AND OBOE_LINK_LIBRARIES)
         set(OBOE_FOUND TRUE)
-        if(NOT TARGET Oboe)
-            add_library(Oboe INTERFACE IMPORTED)
-            target_link_libraries(Oboe INTERFACE "${OBOE_LINK_LIBRARIES}")
-            target_include_directories(Oboe INTERFACE "${OBOE_INCLUDE_DIR}")
+        if(NOT TARGET Oboe::oboe)
+            add_library(Oboe::oboe INTERFACE IMPORTED GLOBAL)
+            target_link_libraries(Oboe::oboe INTERFACE "${OBOE_LINK_LIBRARIES}")
+            target_include_directories(Oboe::oboe INTERFACE "${OBOE_INCLUDE_DIR}")
         endif()
     endif()
 endif()
