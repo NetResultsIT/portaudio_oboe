@@ -1419,11 +1419,11 @@ static PaError OpenStream(struct PaUtilHostApiRepresentation *i_hostApi,
         /* FIXME: Replace "paFloat32" with whatever format you prefer -
          *  PaUtil_SelectClosestAvailableFormat is a bit faulty when working with multiple options */
         hostInputSampleFormat = PaUtil_SelectClosestAvailableFormat(
-                paFloat32, inputSampleFormat);
+                paInt16, inputSampleFormat);
         oboeStream->inputFormat = hostInputSampleFormat;
     } else {
         inputChannelCount = 0;
-        inputSampleFormat = hostInputSampleFormat = paFloat32; /* Suppress 'uninitialised var' warnings. */
+        inputSampleFormat = hostInputSampleFormat = paInt16; /* Suppress 'uninitialised var' warnings. */
         oboeStream->inputFormat = hostInputSampleFormat;
     }
 
@@ -1460,11 +1460,11 @@ static PaError OpenStream(struct PaUtilHostApiRepresentation *i_hostApi,
                   PaUtil_SelectClosestAvailableFormat is a bit faulty when working with multiple options
          */
         hostOutputSampleFormat = PaUtil_SelectClosestAvailableFormat(
-                paFloat32, outputSampleFormat);
+                paInt16, outputSampleFormat);
         oboeStream->outputFormat = hostOutputSampleFormat;
     } else {
         outputChannelCount = 0;
-        outputSampleFormat = hostOutputSampleFormat = paFloat32;
+        outputSampleFormat = hostOutputSampleFormat = paInt16;
         oboeStream->outputFormat = hostOutputSampleFormat;
     }
 
@@ -1863,10 +1863,7 @@ static double GetStreamCpuLoad(PaStream *i_paStream) {
  * @return  256 for Android API Level <= 23, 192 otherwise.
  */
 static unsigned long GetApproximateLowBufferSize() {
-    if (__ANDROID_API__ <= 23)
-        return 256;
-    else
-        return 192;
+    return 1080;
 }
 
 
