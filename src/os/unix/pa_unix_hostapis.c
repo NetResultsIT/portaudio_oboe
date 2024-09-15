@@ -120,6 +120,10 @@ PaUtilHostApiInitializer *paHostApiInitializers[] =
                 PaOboe_Initialize,
 #endif
 
+#if PA_USE_OBOE
+        PaOboe_Initialize,
+#endif
+
 #if PA_USE_SKELETON
         PaSkeleton_Initialize,
 #endif

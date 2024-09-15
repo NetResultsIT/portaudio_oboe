@@ -329,6 +329,36 @@ elseif(UNIX)
     SET(PA_LIBRARY_DEPENDENCIES ${PA_LIBRARY_DEPENDENCIES} m pthread)
   ENDIF()
 
+  IF(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    set(PKGCONFIG_LDFLAGS_PRIVATE "${PA_PKGCONFIG_LDFLAGS} -lm")
+  ELSE()
+    set(PKGCONFIG_LDFLAGS_PRIVATE "${PKGCONFIG_LDFLAGS_PUBLIC} -lm -lpthread")
+    target_link_libraries(PortAudio PRIVATE pthread)
+    set(PKGCONFIG_CFLAGS "${PKGCONFIG_CFLAGS} -pthread")
+  ENDIF()
+
+
+  # Oboe only works on Android, which has a Unix kernel.
+  find_package(Oboe)
+  cmake_dependent_option(PA_USE_OBOE "Enable support for Oboe" ON OBOE_FOUND OFF)
+  if(PA_USE_OBOE)
+    message("--   Oboe structure found")
+    target_include_directories(PortAudio PRIVATE ${OBOE_INCLUDE_DIR})
+    target_link_libraries(PortAudio PUBLIC Oboe::oboe)
+    target_sources(PortAudio PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/hostapi/oboe/pa_oboe.cpp)
+    set(PORTAUDIO_PUBLIC_HEADERS "${PORTAUDIO_PUBLIC_HEADERS}" include/pa_oboe.h)
+    target_compile_definitions(PortAudio PUBLIC PA_USE_OBOE=1)
+    set(PKGCONFIG_CFLAGS "${PKGCONFIG_CFLAGS} -DPA_USE_OBOE=1")
+  endif()
+
+  IF(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    SET(PA_PKGCONFIG_LDFLAGS "${PA_PKGCONFIG_LDFLAGS} -lm")
+    SET(PA_LIBRARY_DEPENDENCIES ${PA_LIBRARY_DEPENDENCIES} m)
+  ELSE()
+    SET(PA_PKGCONFIG_LDFLAGS "${PA_PKGCONFIG_LDFLAGS} -lm -lpthread")
+    SET(PA_LIBRARY_DEPENDENCIES ${PA_LIBRARY_DEPENDENCIES} m pthread)
+  ENDIF()
+
   if(APPLE)
     set(CMAKE_MACOSX_RPATH 1)
     target_sources(PortAudio PRIVATE
